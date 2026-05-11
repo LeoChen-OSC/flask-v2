@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- links css file -->
+</head>
+<body>
+  
+    {%with message = get_flashed_messages() %}
+        {% if message %}
+            <l1>{{ message }}</l1>
+        {% endif %}
+    {% endwith %}
+    <h1>Checkout</h1>
+    {% if session.cart %}
+        <ul>
+        {% for flower, details in session.cart.items() %}
+            <li>{{ flower }} - Quantity: {{ details['quantity'] }} - Total: ${{ details['quantity'] * flowers[flower]['price'] }}</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>Your cart is empty.</p>
+    {% endif %}
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+</body>
+</html>

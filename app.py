@@ -1,4 +1,4 @@
-from ast import Try
+
 
 from flask import Flask, render_template,request,redirect,url_for,session,flash
 import json
@@ -25,9 +25,8 @@ def add_to_cart():
     cart=session.get('cart',{})
     if flower not in flowers:
         flash('Flower not found!')
-        return redirect(url_for('index1'))
-    if flower in cart:
-        
+        return redirect(url_for('checkout'))
+    if flower in cart:    
         cart[flower]['quantity']+=quantity
         print("hello world")
     else:
@@ -38,12 +37,19 @@ def add_to_cart():
             }
         except TypeError:
             flash("something went wrong")
+            # return redirect(url_for('checkout'))
+
         
     session['cart'] = cart
     session.modified = True 
     print(f'{flower} added to cart with quantity {quantity}. Current: {session["cart"]}')
-    flash(f'{flower} added to cart!')
-    return redirect(url_for('index1'))
+    flash(f'{quantity} {flower}(s) added to cart!')
+    return redirect(url_for('checkout'))
+@app.route('/checkout')
+def checkout():
+    cart=session.get('cart',{})
+    flower=load_data()
+    return render_template('checkout.html', cart=cart, flowers=flower)
 if __name__ == '__main__':
     
     app.run(debug=True)
