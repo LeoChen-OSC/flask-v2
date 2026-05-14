@@ -15,15 +15,20 @@
         {% endif %}
     {% endwith %}
     <h1>Checkout</h1>
-    {% if session.cart %}
+    {% if cart %}
         <ul>
-        {% for flower, details in session.cart.items() %}
-            <li>{{ flower }} - Quantity: {{ details['quantity'] }} - Total: ${{ details['quantity'] * flowers[flower]['price'] }}</li>
+        {% for items, details in cart.items() %}
+            <li>{{ items }} - Quantity: {{ details['quantity'] }} - Total: ${{ details['quantity'] * flowers[items]['price'] }}
+                <a href="{{ url_for('remove_from_cart', items=items) }}">Remove</a>
+            </li>
         {% endfor %}
         </ul>
     {% else %}
         <p>Your cart is empty.</p>
     {% endif %}
+    <form action={{ url_for('index1') }} method="post">
+        <input type="submit" value="keep Shopping">
+    </form>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 
 </body>

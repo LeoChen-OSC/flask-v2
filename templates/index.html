@@ -12,6 +12,11 @@
     {% for flower, details in flowers.items() %}
         <h1>{{ flower }} {{ details.price }} stock:{{ details.stock }}</h1>
     {% endfor %}
+    {% with message = get_flashed_messages() %}
+        {% if message %}
+            <p>{{ message }}</p>
+        {% endif %}
+    {% endwith %}
     <form action={{ url_for('index1') }} method="post">
         <input type="submit" value="Go to index1"></submit>
     </form>

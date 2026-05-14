@@ -1,27 +1,29 @@
-
-
 from flask import Flask, render_template,request,redirect,url_for,session,flash
-import json
+import json,math,random
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Required for session management
 def load_data():
     with open('data/flowers.json','r') as f:
-        data=json.load(f)
-    return data
+        flower=json.load(f)
+    with open('data/addons.json','r') as f:
+        addons=json.load(f)
+    return flower,addons
 
 @app.route('/')
 def index():
-    flowers=load_data()
-    return render_template('index.html', flowers=flowers)
+    a12=(math.sin(random.random())+1)*100
+    flowers,addons=load_data()
+    flash(a12)
+    return render_template('index.html', flowers=flowers, addons=addons)
 @app.route('/index1', methods=[ 'POST'])
 def index1():
-    flowers=load_data()
-    return render_template('index1.html', flowers=flowers)
+    flowers,addons=load_data()
+    return render_template('index1.html', flowers=flowers,addons=addons)
 @app.route('/add_to_cart', methods=['POST'])
 def add_to_cart():
-    flower=request.form.get('flower')
-    quantity=int(request.form['quantity'])
-    flowers,addons,addons1,addons2=load_data()
+    flower=request.form.get('flower') # get the flower data in this form
+    quantity=int(request.form['quantity']) # Convert quantity to an int
+    flowers,addons=load_data()
     cart=session.get('cart',{})
     if flower not in flowers:
         flash('Flower not found!')
@@ -48,8 +50,19 @@ def add_to_cart():
 @app.route('/checkout')
 def checkout():
     cart=session.get('cart',{})
-    flower=load_data()
-    return render_template('checkout.html', cart=cart, flowers=flower)
+    flower,addons=load_data()
+    return render_template('checkout.html', cart=cart, flowers=flower, addons=addons)
+@app.route('/remove_from_cart/<items>')
+def remove_from_cart(items):
+    cart=session.get('cart',{})
+    if items in cart:
+        del cart[items]
+        session['cart'] = cart
+        session.modified = True
+        flash(f'{items} removed from cart!')
+    else:
+        flash(f'{items} not found in cart!')
+    return redirect(url_for('checkout'))
 if __name__ == '__main__':
     
     app.run(debug=True)
