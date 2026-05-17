@@ -21,25 +21,22 @@ def index1():
     return render_template('index1.html', flowers=flowers,addons=addons)
 @app.route('/add_to_cart', methods=['POST'])
 def add_to_cart():
-    flower=request.form.get('flower') # get the flower data in this form
+    flower=request.form['flower'] # get the flower data in this form
     quantity=int(request.form['quantity']) # Convert quantity to an int
     flowers,addons=load_data()
     cart=session.get('cart',{})
     if flower not in flowers:
-        flash('Flower not found!')
+        flash("Flower not found!")
         return redirect(url_for('checkout'))
     if flower in cart:    
         cart[flower]['quantity']+=quantity
         print("hello world")
     else:
-        try:
-            cart[flower] = {
-                'price': flowers[flower]['price'],
-                'quantity': quantity
-            }
-        except TypeError:
-            flash("something went wrong")
-            # return redirect(url_for('checkout'))
+        cart[flower]={
+            'price': flowers[flower]['price'],
+            'quantity': quantity
+        }
+
 
         
     session['cart'] = cart
@@ -47,14 +44,28 @@ def add_to_cart():
     print(f'{flower} added to cart with quantity {quantity}. Current: {session["cart"]}')
     flash(f'{quantity} {flower}(s) added to cart!')
     return redirect(url_for('checkout'))
+@app.route('/select_addon', methods=['POST'])
+def select_addon():
+    selected_addons={}
+    _, addons = load_data()
+    selected_keys = request.form.getlist('addons')
+    for addon in selected_keys:
+        if addon in addons:
+            selected_addons[addon] = float(addons[addon]['price'])
+    session['selected_addons'] = selected_addons
+    session.modified = True
+    flash(f'you have addedaddons: {", ".join(selected_addons.keys())}')
+    return redirect(url_for('checkout'))
 @app.route('/checkout')
 def checkout():
     cart=session.get('cart',{})
     flower,addons=load_data()
-    return render_template('checkout.html', cart=cart, flowers=flower, addons=addons)
+    selected_addons=session.get('selected_addons',{})
+    return render_template('checkout.html', cart=cart, flowers=flower, addons=addons, selected_addons=selected_addons,)
 @app.route('/remove_from_cart/<items>')
 def remove_from_cart(items):
     cart=session.get('cart',{})
+    selected_addons=session.get('selected_addons',{})
     if items in cart:
         del cart[items]
         session['cart'] = cart

@@ -1,18 +1,18 @@
 {
 
-    "rose": {
+    "ribcage": {
         "price": 10,
         "stock": 15
     },
-    "tulip": {
+    "liver": {
         "price": 8,
         "stock": 20
     },
-    "daisy": {
+    "fried chicken": {
         "price": 21,
         "stock": 25
     },
-    "chrysanthemum": {
+    "cantaloupe": {
         "price": 69,
         "stock": 20
     }

@@ -26,6 +26,23 @@
         <input type="submit" value="Submit" method="post"></submit>
         </fieldset>
     </form>
+    {% for addon, details in addons.items() %}
+        <h1>{{ addon }} {{ details.price }} stock:{{ details.stock }}</h1>
+    {% endfor %}
+    <form action={{ url_for('select_addon') }} method="post">
+        <fieldset>
+
+        <label for="flower">add an addon:</label>
+        <br>
+        {%for addon, details in addons.items()%}
+            <label>
+                <input type="checkbox" name="addons" value="{{ addon }}" >
+                {{ addon }} - ${{ details.price }}
+            </label><br>
+        {%endfor%}
+        <input type="submit" value="Submit" method="post"></submit>
+        </fieldset>
+    </form>
     {%with message = get_flashed_messages() %}
         {% if message %}
             <p>{{ message }}</p>

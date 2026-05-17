@@ -26,6 +26,15 @@
     {% else %}
         <p>Your cart is empty.</p>
     {% endif %}
+    {% if selected_addons %}
+        <ul>
+        {% for addon, price in selected_addons.items() %}
+            <li>{{ addon }} - Price: ${{ price }}</li>
+        {% endfor %}
+        </ul>  
+    {% else %}
+        <p>Your extras is empty.</p>
+    {% endif %}
     <form action={{ url_for('index1') }} method="post">
         <input type="submit" value="keep Shopping">
     </form>
