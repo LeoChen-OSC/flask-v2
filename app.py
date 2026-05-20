@@ -1,3 +1,6 @@
+from datetime import datetime
+import sqlite3
+
 from flask import Flask, render_template,request,redirect,url_for,session,flash
 import json,math,random
 app = Flask(__name__)
@@ -44,6 +47,7 @@ def add_to_cart():
     print(f'{flower} added to cart with quantity {quantity}. Current: {session["cart"]}')
     flash(f'{quantity} {flower}(s) added to cart!')
     return redirect(url_for('checkout'))
+
 @app.route('/select_addon', methods=['POST'])
 def select_addon():
     selected_addons={}
@@ -61,7 +65,11 @@ def checkout():
     cart=session.get('cart',{})
     flower,addons=load_data()
     selected_addons=session.get('selected_addons',{})
-    return render_template('checkout.html', cart=cart, flowers=flower, addons=addons, selected_addons=selected_addons,)
+    total=calc_total(cart)+sum(selected_addons.values())
+    return render_template('checkout.html', cart=cart, flowers=flower, addons=addons, selected_addons=selected_addons,total=total)
+def calc_total(cart):
+    total=sum(item['price']*item['quantity'] for item in cart.values())
+    return total
 @app.route('/remove_from_cart/<items>')
 def remove_from_cart(items):
     cart=session.get('cart',{})
@@ -74,7 +82,63 @@ def remove_from_cart(items):
     else:
         flash(f'{items} not found in cart!')
     return redirect(url_for('checkout'))
+@app.route('/clear_cart', methods=['POST'])
+def clear_cart():
+    session.pop('cart', None)
+    session.pop('selected_addons', None)
+    session.modified = True
+    flash('Cart cleared!')
+    return redirect(url_for('checkout'))
+@app.route('/check', methods=['POST'])
+def check():
+    customer_name = request.form['customer_name'].strip().title()
+    if not customer_name:
+        flash('Please enter your name')
+        return redirect(url_for('checkout'))
+    cart = session.get('cart', {})
+    selected_addons = session.get('selected_addons', {})
+    if not cart:
+        flash('Your cart is empty!')
+        return redirect(url_for('checkout'))
+    total = calc_total(cart) + sum(selected_addons.values())
+    invoice_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    invoice_number=f"INV_{customer_name.replace(' ','')}_{invoice_date})"
+    with sqlite3.connect('invoices.db') as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT INTO orders (invoice_number, customer_name, items, addons, total)
+            VALUES (?, ?, ?, ?, ?)
+        ''', 
+        #adds a row of data to the database
+        (
+            
+            invoice_number,
+            customer_name,
+            json.dumps(cart),
+            json.dumps(selected_addons),
+            total
+       
+        ))
+        #json.dump saves the document as a string in the database
+        conn.commit()
+        #writes the changes to the database
+    return render_template('invoice.html', customer_name=customer_name, cart=cart, selected_addons=selected_addons, total=total, invoice_number=invoice_number, invoice_date=invoice_date)  
+def initialize_database():
+    with sqlite3.connect('invoices.db') as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS orders (
+                order_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                invoice_number TEXT,
+                customer_name TEXT,
+                items TEXT,
+                addons TEXT,
+                total REAL,
+                date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+
 if __name__ == '__main__':
-    
+    initialize_database()
     app.run(debug=True)
 #     #runs the program with debugging mode on.
