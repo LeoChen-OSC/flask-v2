@@ -1,6 +1,9 @@
 from datetime import datetime
-import sqlite3
-
+import sqlite3,os
+directory = 'invoice_list'
+if not os.path.exists(directory):
+    os.makedirs(directory)
+    
 from flask import Flask, render_template,request,redirect,url_for,session,flash
 import json,math,random
 app = Flask(__name__)
@@ -69,6 +72,9 @@ def checkout():
     return render_template('checkout.html', cart=cart, flowers=flower, addons=addons, selected_addons=selected_addons,total=total)
 def calc_total(cart):
     total=sum(item['price']*item['quantity'] for item in cart.values())
+    if total>180:
+        total=total*0.9
+        flash("10% discount applied!")
     return total
 @app.route('/remove_from_cart/<items>')
 def remove_from_cart(items):
@@ -122,7 +128,52 @@ def check():
         #json.dump saves the document as a string in the database
         conn.commit()
         #writes the changes to the database
+    with open('redirect_log.txt', 'a') as f:
+        f.write("hello world\n")
+    invoice_file = invoice_number.replace(':', '-').replace(' ', '_')
+    with open( f'{invoice_file}.txt', 'w') as f:        
+        f.write(invoice_number)
+        f.write('\n')
+        f.write(f"Customer Name: {customer_name}\n")
+        f.write(f"Invoice Date: {invoice_date}\n")
+        f.write("Items:\n")
+        for item, details in cart.items():
+            f.write(f" - {item}: {details['quantity']} x ${details['price']:.2f} = ${details['quantity'] * details['price']:.2f}\n")
+        f.write("Add-ons:\n")
+        for addon, price in selected_addons.items():
+            f.write(f" - {addon}: ${price:.2f}\n")
+        f.write(f"Total: ${total:.2f}\n")
+    with open('data/flowers.json', 'r') as f:
+        flower_data = json.load(f)
+    for flower_name, details in cart.items():
+        if flower_name in flower_data:
+            flower_data[flower_name]['stock'] -= details['quantity']
+            if flower_data[flower_name]['stock'] < 0:
+                flower_data[flower_name]['stock'] = 0
+    with open('data/flowers.json', 'w') as f:
+        json.dump(flower_data, f,indent=4)
     return render_template('invoice.html', customer_name=customer_name, cart=cart, selected_addons=selected_addons, total=total, invoice_number=invoice_number, invoice_date=invoice_date)  
+@app.route('/history', methods=['POST'])
+def history():
+    with sqlite3.connect('invoices.db') as conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM orders ORDER BY date DESC')
+        rows = cursor.fetchall()
+        orders = []
+        for rows in rows:
+            orders.append({
+                'order_id': rows[0],
+                'invoice_number': rows[1],
+                'customer_name': rows[2],
+                'items': json.loads(rows[3]),
+                'addons': json.loads(rows[4]),
+                'total': rows[5],
+                'date': rows[6]
+            })
+    session.modified = True
+    return render_template('order_history.html', orders=orders )
+
+
 def initialize_database():
     with sqlite3.connect('invoices.db') as conn:
         cursor = conn.cursor()

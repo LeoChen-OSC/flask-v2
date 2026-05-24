@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- links css file -->
+</head>
+<body>
+    {% block content %}
+        <h2>la historia<h2>
+        {%if orders %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Invoice Number</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                        <tr>
+                            <td>{{ orders.invoice_number }}</td>
+                            <td>{{ orders.customer_name }}</td>
+                            <td>
+                                <ul>
+
+                                </ul>
+                            </td>
+                            <td>
+                                <ul>
+                                    {% for addon,details in orders['addons'].items() %}
+                                        <li>{{ addon }} - Quantity: {{ details['quantity'] }} - Price: ${{ details['price'] }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                            <td>{{ orders.total }}</td>
+
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    {% endblock %}
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+</body>
+</html>

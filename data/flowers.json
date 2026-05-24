@@ -1,8 +1,7 @@
 {
-
     "rose": {
         "price": 10,
-        "stock": 15
+        "stock": 0
     },
     "tulip": {
         "price": 8,
