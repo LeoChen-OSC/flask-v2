@@ -27,8 +27,12 @@ def index1():
     return render_template('index1.html', flowers=flowers,addons=addons)
 @app.route('/add_to_cart', methods=['POST'])
 def add_to_cart():
-    flower=request.form['flower'] # get the flower data in this form
-    quantity=int(request.form['quantity']) # Convert quantity to an int
+    try:
+        flower=request.form['flower'] # get the flower data in this form
+        quantity=int(request.form['quantity']) # Convert quantity to an int
+    except (KeyError, ValueError):
+        flash("i cant type lol")
+        return redirect(url_for('checkout'))
     flowers,addons=load_data()
     cart=session.get('cart',{})
     if flower not in flowers:
@@ -153,27 +157,34 @@ def check():
     with open('data/flowers.json', 'w') as f:
         json.dump(flower_data, f,indent=4)
     return render_template('invoice.html', customer_name=customer_name, cart=cart, selected_addons=selected_addons, total=total, invoice_number=invoice_number, invoice_date=invoice_date)  
-@app.route('/history', methods=['POST'])
+@app.route('/history', methods=['POST', 'GET'])
 def history():
     with sqlite3.connect('invoices.db') as conn:
         cursor = conn.cursor()
         cursor.execute('SELECT * FROM orders ORDER BY date DESC')
         rows = cursor.fetchall()
         orders = []
-        for rows in rows:
+        for row in rows:
             orders.append({
-                'order_id': rows[0],
-                'invoice_number': rows[1],
-                'customer_name': rows[2],
-                'items': json.loads(rows[3]),
-                'addons': json.loads(rows[4]),
-                'total': rows[5],
-                'date': rows[6]
+                'order_id': row[0],
+                'invoice_number': row[1],
+                'customer_name': row[2],
+                'items': json.loads(row[3]),
+                'addons': json.loads(row[4]),
+                'total': row[5],
+                'date': row[6]
             })
     session.modified = True
-    return render_template('order_history.html', orders=orders )
+    return render_template('order_history.html', orders=orders)
 
-
+@app.route('/delete_order/<int:order_id>', methods=['POST'])
+def delete_order(order_id):
+    with sqlite3.connect('invoices.db') as conn:
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM orders WHERE order_id = ?', (order_id,))
+        conn.commit()
+    flash(f'Order {order_id} deleted!')
+    return redirect(url_for('history'))
 def initialize_database():
     with sqlite3.connect('invoices.db') as conn:
         cursor = conn.cursor()

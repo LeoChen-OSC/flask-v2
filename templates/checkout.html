@@ -10,6 +10,7 @@
 <body>
     <form action={{ url_for('history') }} method="post">
         <input type="submit" value="view history">
+    </form>
     {%with message = get_flashed_messages() %}
         {% if message %}
             <l1>{{ message }}</l1>
