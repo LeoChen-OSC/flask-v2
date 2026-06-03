@@ -105,6 +105,11 @@ def check():
     if not customer_name:
         flash('Please enter your name')
         return redirect(url_for('checkout'))
+    else:
+        customer_name = customer_name.encode('utf-8').decode('utf-8')
+    if len(customer_name) > 50:
+        flash('Name is too long! Please enter a name under 50 characters.')
+        return redirect(url_for('checkout'))
     cart = session.get('cart', {})
     selected_addons = session.get('selected_addons', {})
     if not cart:
@@ -135,10 +140,13 @@ def check():
     with open('redirect_log.txt', 'a') as f:
         f.write("hello world\n")
     invoice_file = invoice_number.replace(':', '-').replace(' ', '_')
-    with open( f'{invoice_file}.txt', 'w') as f:        
-        f.write(invoice_number)
-        f.write('\n')
-        f.write(f"Customer Name: {customer_name}\n")
+    with open( f'{invoice_file}.txt', 'w') as f: 
+        try:       
+            f.write(invoice_number)         
+            f.write('\n')
+            f.write(f"Customer Name: {customer_name}\n")
+        except UnicodeEncodeError:
+            f.write("Customer Name: [Name contains unsupported characters]\n")
         f.write(f"Invoice Date: {invoice_date}\n")
         f.write("Items:\n")
         for item, details in cart.items():

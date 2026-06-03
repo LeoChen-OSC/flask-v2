@@ -19,3 +19,13 @@ h1{
     text-align: left;
     word-break: break-all;
 }
+.in_cart{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    background-color: purple;
+    padding: 20px;
+}
+.in_addons{
+    background-color: pink;
+}

@@ -14,5 +14,13 @@
     "chrysanthemum": {
         "price": 69,
         "stock": 20
+    },
+    "\u00e7\u2030\u00b5\u00e7\u2030\u203a\u00e8\u0160\u00b1": {
+        "price": 21,
+        "stock": 0
+    },
+    "\u00e3\u201a\u00bf\u00e3\u201a\u00a4\u00e3\u201a\u00bf\u00e3\u0192\u00b3\u00e3\u201a\u00a2\u00e3\u0192\u00ab\u00e3\u0192\u00a0": {
+        "price": 69,
+        "stock": 0
     }
 }
